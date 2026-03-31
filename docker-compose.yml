@@ -38,6 +38,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./alertmanager:/etc/alertmanager
+      - alertmanager_data:/alertmanager
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--storage.path=/alertmanager'
@@ -94,6 +95,7 @@ services:
 
 volumes:
   prometheus_data:
+  alertmanager_data:
   grafana_data:
   mosquitto_data:
   mosquitto_log:
