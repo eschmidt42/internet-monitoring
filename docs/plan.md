@@ -66,8 +66,29 @@ The internet-pi subtree is reference only; we produce a clean `internet-monitori
 
 - Use **Podman Desktop** (installs `podman machine`, provides Docker-socket compatibility)
 - Use `docker compose` CLI pointed at the Podman socket — or `podman compose`
-- Port bindings in compose expose services to Mac's LAN IP (Podman Desktop handles host-port forwarding from the VM)
-- macOS firewall must allow ports 1883, 3000 (Grafana), 9090, 9093
+- Port bindings in compose can expose selected services to the Mac's LAN IP (Podman Desktop handles host-port forwarding from the VM)
+- macOS firewall must allow ports 1883 (Mosquitto) and, optionally, 3000 (Grafana) for access from other LAN devices; keep Prometheus (9090) and Alertmanager (9093) internal to the compose network or bound to `127.0.0.1` if host-only access is needed
+
+## ICMP / NET_RAW Requirements
+
+Blackbox Exporter uses raw ICMP sockets for ping probes. Unprivileged containers cannot send ICMP by default — this is especially common under Podman rootless and will cause false "internet down" alerts.
+
+**Required in `docker-compose.yml`** for the `blackbox` service:
+```yaml
+cap_add:
+  - NET_RAW
+```
+
+**Podman rootless on macOS (Podman Desktop):** `cap_add: NET_RAW` alone may not be sufficient because the Podman VM's kernel restricts unprivileged ICMP. Two options (in order of preference):
+
+1. **Set `ping_group_range` in the Podman VM** (one-time, survives restarts if added to `/etc/sysctl.d/`):
+   ```bash
+   podman machine ssh
+   sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+   ```
+2. **Run the blackbox container as root** by adding `user: root` to the service in compose — simpler but less hardened.
+
+Fallback if neither is acceptable: replace ICMP probes with HTTP probes targeting `http://8.8.8.8` etc. (less reliable but requires no extra capabilities).
 
 ## Alerting Flow
 
@@ -92,7 +113,7 @@ Grafana also gets its own alert rules on the same Prometheus datasource (as back
 2. **Scrape interval**: 15s (blackbox), alert fires after 2 min sustained
 3. **Alertmanager webhook**: calls `http://mqtt-bridge:5000/alert`
 4. **Alert quiet hours**: Alertmanager `mute_time_intervals` silences MQTT/webhook alerts at night (22:00–07:00); configurable in `alertmanager.yml`
-5. **Mosquitto**: anonymous access, bind to all interfaces (LAN reachable)
+5. **Mosquitto**: username/password auth via `mosquitto_passwd` (password file `.gitignore`'d); `allow_anonymous false`; credentials passed to `mqtt-bridge` and mobile apps via env vars. Bind to all interfaces (LAN reachable).
 6. **Grafana**: port 3000, pre-provisioned dashboard from internet-pi
 
 ## Implementation Checklist
@@ -103,8 +124,8 @@ Grafana also gets its own alert rules on the same Prometheus datasource (as back
 4. Write `prometheus/pinghosts.yml`
 5. Adapt `prometheus/alert.rules` (internet outage rule, remove high_load)
 6. Write `alertmanager/alertmanager.yml` (route alerts to webhook; add `mute_time_intervals` for quiet hours, default 22:00–07:00)
-7. Write `mosquitto/config/mosquitto.conf`
-8. Write `mqtt-bridge/bridge.py`, `Dockerfile`, `requirements.txt`
+7. Write `mosquitto/config/mosquitto.conf` with `allow_anonymous false`, `password_file` pointing to `mosquitto.passwd`; add `mosquitto/config/mosquitto.passwd` to `.gitignore`; document one-time setup step: `mosquitto_passwd -c mosquitto/config/mosquitto.passwd <username>`
+8. Write `mqtt-bridge/bridge.py`, `Dockerfile`, `requirements.txt`; pass `MQTT_USER` and `MQTT_PASSWORD` as env vars in compose
 9. Copy/adapt Grafana provisioning files from internet-pi
 10. Copy/adapt Blackbox Exporter config from internet-pi
 11. Verify `podman compose up` brings everything up cleanly
