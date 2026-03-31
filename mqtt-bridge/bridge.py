@@ -49,8 +49,19 @@ def alert():
     data = request.get_json(force=True, silent=True) or {}
     alerts = data.get("alerts", [])
 
-    firing = [a for a in alerts if a.get("status") == "firing"]
-    payload = "down" if firing else "up"
+    # Only treat connectivity-loss alerts as "down"; warnings (e.g. HighLatency)
+    # are informational and should not trigger an outage notification.
+    def _is_outage(alert):
+        labels = alert.get("labels", {})
+        return (
+            alert.get("status") == "firing"
+            and (
+                labels.get("alertname") == "InternetDown"
+                or labels.get("severity") == "critical"
+            )
+        )
+
+    payload = "down" if any(_is_outage(a) for a in alerts) else "up"
 
     try:
         _publish(payload)

@@ -18,7 +18,7 @@ Self-contained Podman/Docker Compose stack that monitors internet availability a
 ### 1. Prerequisites
 
 - [Podman Desktop](https://podman-desktop.io/) (macOS) — provides `podman machine` + Docker socket
-- `podman compose` or `docker compose` CLI
+- `podman compose` or `docker-compose` CLI
 
 ### 2. ICMP / Ping support (Podman rootless, one-time)
 
@@ -37,7 +37,7 @@ cp .env.example .env
 # Edit .env — set GRAFANA_ADMIN_PASSWORD, MQTT_USER, MQTT_PASSWORD
 
 # Create the Mosquitto password file (must match MQTT_USER / MQTT_PASSWORD in .env)
-docker run --rm -it eclipse-mosquitto mosquitto_passwd -c /dev/stdout <MQTT_USER> > mosquitto/config/mosquitto.passwd
+podman run --rm -it eclipse-mosquitto mosquitto_passwd -c /dev/stdout <MQTT_USER> > mosquitto/config/mosquitto.passwd
 # Or if mosquitto_passwd is installed locally:
 mosquitto_passwd -c mosquitto/config/mosquitto.passwd <MQTT_USER>
 ```
@@ -45,7 +45,7 @@ mosquitto_passwd -c mosquitto/config/mosquitto.passwd <MQTT_USER>
 ### 4. Start the stack
 
 ```bash
-docker compose up -d
+podman compose up -d
 ```
 
 Open Grafana at http://localhost:3000 (or your Mac's LAN IP).

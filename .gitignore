@@ -1,6 +1,6 @@
 # Mosquitto credentials — generate with:
-#   mosquitto_passwd -c internet-monitoring/mosquitto/config/mosquitto.passwd <username>
-internet-monitoring/mosquitto/config/mosquitto.passwd
+#   mosquitto_passwd -c mosquitto/config/mosquitto.passwd <username>
+mosquitto/config/mosquitto.passwd
 
 # Environment overrides
-internet-monitoring/.env
+.env

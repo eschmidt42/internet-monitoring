@@ -1,8 +1,10 @@
 ---
+# To upgrade: update the image tags below, test with `docker compose pull && docker compose up -d`,
+# and verify dashboards / alert rules still behave correctly.
 services:
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.10.0
     container_name: prometheus
     restart: unless-stopped
     volumes:
@@ -18,7 +20,7 @@ services:
       - monitoring
 
   blackbox:
-    image: prom/blackbox-exporter:latest
+    image: prom/blackbox-exporter:v0.28.0
     container_name: blackbox
     restart: unless-stopped
     cap_add:
@@ -33,7 +35,7 @@ services:
       - monitoring
 
   alertmanager:
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.31.1
     container_name: alertmanager
     restart: unless-stopped
     volumes:
@@ -48,12 +50,13 @@ services:
       - monitoring
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:12.4.2
     container_name: grafana
     restart: unless-stopped
+    # Set GRAFANA_ADMIN_USER and GRAFANA_ADMIN_PASSWORD in .env
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -64,7 +67,7 @@ services:
       - monitoring
 
   mosquitto:
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2.0.18
     container_name: mosquitto
     restart: unless-stopped
     volumes:

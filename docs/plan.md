@@ -8,7 +8,7 @@ Build a self-contained Podman (Docker Compose compatible) stack on macOS that:
 - Alerts on the local network (LAN/Wi-Fi) via both Grafana alerting and MQTT push to iOS and Android devices
 - Alert fires after 2 minutes of detected outage
 
-## Starting Point
+## Starting Point (deleted with the `feat/building-stuff` branch)
 
 `internet-pi/internet-monitoring/` contains provisioned configs for:
 - Prometheus (scrape config, alert rules)
@@ -118,15 +118,14 @@ Grafana also gets its own alert rules on the same Prometheus datasource (as back
 
 ## Implementation Checklist
 
-1. Create `internet-monitoring/` directory structure at repo root
-2. Write `docker-compose.yml` (all 6 services)
-3. Adapt `prometheus/prometheus.yml` from internet-pi (remove speedtest, add pinghosts)
-4. Write `prometheus/pinghosts.yml`
-5. Adapt `prometheus/alert.rules` (internet outage rule, remove high_load)
-6. Write `alertmanager/alertmanager.yml` (route alerts to webhook; add `mute_time_intervals` for quiet hours, default 22:00–07:00)
-7. Write `mosquitto/config/mosquitto.conf` with `allow_anonymous false`, `password_file` pointing to `mosquitto.passwd`; add `mosquitto/config/mosquitto.passwd` to `.gitignore`; document one-time setup step: `mosquitto_passwd -c mosquitto/config/mosquitto.passwd <username>`
-8. Write `mqtt-bridge/bridge.py`, `Dockerfile`, `requirements.txt`; pass `MQTT_USER` and `MQTT_PASSWORD` as env vars in compose
-9. Copy/adapt Grafana provisioning files from internet-pi
-10. Copy/adapt Blackbox Exporter config from internet-pi
-11. Verify `podman compose up` brings everything up cleanly
-12. Test Mosquitto reachable from LAN
+1. Write `docker-compose.yml` (all 6 services)
+2. Adapt `prometheus/prometheus.yml` from internet-pi (remove speedtest, add pinghosts)
+3. Write `prometheus/pinghosts.yml`
+4. Adapt `prometheus/alert.rules` (internet outage rule, remove high_load)
+5. Write `alertmanager/alertmanager.yml` (route alerts to webhook; add `mute_time_intervals` for quiet hours, default 22:00–07:00)
+6. Write `mosquitto/config/mosquitto.conf` with `allow_anonymous false`, `password_file` pointing to `mosquitto.passwd`; add `mosquitto/config/mosquitto.passwd` to `.gitignore`; document one-time setup step: `mosquitto_passwd -c mosquitto/config/mosquitto.passwd <username>`
+7. Write `mqtt-bridge/bridge.py`, `Dockerfile`, `requirements.txt`; pass `MQTT_USER` and `MQTT_PASSWORD` as env vars in compose
+8. Copy/adapt Grafana provisioning files from internet-pi
+9.  Copy/adapt Blackbox Exporter config from internet-pi
+10. Verify `podman compose up` brings everything up cleanly
+11. Test Mosquitto reachable from LAN
