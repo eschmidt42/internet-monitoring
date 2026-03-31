@@ -1,0 +1,21 @@
+groups:
+  - name: internet
+    rules:
+
+      - alert: InternetDown
+        expr: probe_success == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Internet probe failing: {{ $labels.instance }}"
+          description: "Probe to {{ $labels.instance }} (job: {{ $labels.job }}) has been failing for more than 2 minutes."
+
+      - alert: HighLatency
+        expr: probe_duration_seconds > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency to {{ $labels.instance }}"
+          description: "Probe to {{ $labels.instance }} is taking {{ $value | humanizeDuration }} (threshold: 1s)."

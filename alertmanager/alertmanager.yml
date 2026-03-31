@@ -1,0 +1,33 @@
+---
+global:
+  resolve_timeout: 5m
+
+# Silence alerts between 22:00 and 07:00 local time
+time_intervals:
+  - name: quiet_hours
+    time_intervals:
+      - times:
+          - start_time: '22:00'
+            end_time: '24:00'
+          - start_time: '00:00'
+            end_time: '07:00'
+
+route:
+  group_by: ['alertname', 'instance']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: mqtt-bridge
+  active_time_intervals: []
+  routes:
+    - receiver: mqtt-bridge
+      matchers:
+        - severity =~ "critical|warning"
+      mute_time_intervals:
+        - quiet_hours
+
+receivers:
+  - name: mqtt-bridge
+    webhook_configs:
+      - url: 'http://mqtt-bridge:5000/alert'
+        send_resolved: true
