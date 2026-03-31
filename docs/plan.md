@@ -88,7 +88,7 @@ cap_add:
    ```
 2. **Run the blackbox container as root** by adding `user: root` to the service in compose — simpler but less hardened.
 
-Fallback if neither is acceptable: replace ICMP probes with HTTP probes targeting `http://8.8.8.8` etc. (less reliable but requires no extra capabilities).
+Fallback if neither is acceptable: replace ICMP probes with HTTP(S) probes targeting a known connectivity endpoint such as `https://www.gstatic.com/generate_204`, or use a blackbox `tcp_connect` probe (for example to `8.8.8.8:53`) if only reachability is required (less reliable than ICMP but requires no extra capabilities).
 
 ## Alerting Flow
 
