@@ -67,7 +67,7 @@ Verify the file was written correctly:
 cat mosquitto/config/mosquitto.passwd  →  should show: <MQTT_USER>:$7$...
 ```
 
-I you want to overwrite using the above podman command you may need to remove the mosquitto.passwd file, e.g. using
+If you want to overwrite using the above podman command you may need to remove the mosquitto.passwd file, e.g. using
 
 ```bash
 rm mosquitto/config/mosquitto.passwd
@@ -94,7 +94,7 @@ Payload is `"down"` when internet probes fail, `"up"` on recovery.
 
 - Probes run every **15 seconds**
 - Alert fires after **2 minutes** of sustained failures
-- Alerts are **silenced 22:00–07:00** (configurable in `alertmanager/alertmanager.yml`)
+- Alerts are **silenced 22:00–07:00 Europe/Berlin** (configurable in `alertmanager/alertmanager.yml` — change the `location` field to your timezone)
 
 ## Ping targets
 

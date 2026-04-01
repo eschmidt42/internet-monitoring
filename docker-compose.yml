@@ -38,6 +38,8 @@ services:
     image: prom/alertmanager:v0.31.1
     container_name: alertmanager
     restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
     volumes:
       - ./alertmanager:/etc/alertmanager
       - alertmanager_data:/alertmanager
@@ -55,8 +57,8 @@ services:
     restart: unless-stopped
     # Set GRAFANA_ADMIN_USER and GRAFANA_ADMIN_PASSWORD in .env
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?set in .env}
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning

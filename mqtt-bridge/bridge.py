@@ -46,8 +46,21 @@ def _publish(payload: str):
 
 @app.route("/alert", methods=["POST"])
 def alert():
-    data = request.get_json(force=True, silent=True) or {}
-    alerts = data.get("alerts", [])
+    data = request.get_json(force=True, silent=True)
+    if data is None:
+        logger.warning("Rejected request: body is not valid JSON")
+        return jsonify({"error": "request body must be valid JSON"}), 400
+    if not isinstance(data, dict):
+        logger.warning("Rejected request: expected a JSON object, got %s", type(data).__name__)
+        return jsonify({"error": "request body must be a JSON object"}), 400
+    if "alerts" not in data:
+        logger.warning("Rejected request: missing 'alerts' key")
+        return jsonify({"error": "missing required key: alerts"}), 400
+    if not isinstance(data["alerts"], list):
+        logger.warning("Rejected request: 'alerts' must be a list")
+        return jsonify({"error": "'alerts' must be a list"}), 400
+
+    alerts = data["alerts"]
 
     # Only treat connectivity-loss alerts as "down"; warnings (e.g. HighLatency)
     # are informational and should not trigger an outage notification.

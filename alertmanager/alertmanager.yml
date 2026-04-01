@@ -2,11 +2,12 @@
 global:
   resolve_timeout: 5m
 
-# Silence alerts between 22:00 and 07:00 local time
+# Silence alerts between 22:00 and 07:00 Europe/Berlin local time
 time_intervals:
   - name: quiet_hours
     time_intervals:
-      - times:
+      - location: 'Europe/Berlin'
+        times:
           - start_time: '22:00'
             end_time: '24:00'
           - start_time: '00:00'
