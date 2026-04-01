@@ -32,14 +32,45 @@ exit
 
 ### 3. Configure credentials
 
+> Note: the MQTT credentials are not needed for now. MQTTAnalyzer had issues subscribing with credentials, so they are deactivated for now.
+
 ```bash
 cp .env.example .env
-# Edit .env — set GRAFANA_ADMIN_PASSWORD, MQTT_USER, MQTT_PASSWORD
+```
 
-# Create the Mosquitto password file (must match MQTT_USER / MQTT_PASSWORD in .env)
-podman run --rm -it eclipse-mosquitto mosquitto_passwd -c /dev/stdout <MQTT_USER> > mosquitto/config/mosquitto.passwd
-# Or if mosquitto_passwd is installed locally:
+Edit .env — set GRAFANA_ADMIN_PASSWORD, MQTT_USER, MQTT_PASSWORD. 
+
+Create the Mosquitto password file (must match MQTT_USER / MQTT_PASSWORD in .env)
+
+```bash
+podman run --rm -it \
+  -v "$(pwd)/mosquitto/config:/mosquitto/config" \
+  eclipse-mosquitto:2.0.18 \
+  mosquitto_passwd -c /mosquitto/config/mosquitto.passwd <MQTT_USER>
+```
+
+Or if mosquitto_passwd is installed locally:
+
+```bash
 mosquitto_passwd -c mosquitto/config/mosquitto.passwd <MQTT_USER>
+```
+
+You should then see something like:
+
+Enter password: [paste, Enter]   ← nothing visible
+Reenter password: [paste, Enter] ← nothing visible
+
+The command will prompt for the password twice — input is not echoed, this is expected.
+
+Verify the file was written correctly:
+```bash
+cat mosquitto/config/mosquitto.passwd  →  should show: <MQTT_USER>:$7$...
+```
+
+I you want to overwrite using the above podman command you may need to remove the mosquitto.passwd file, e.g. using
+
+```bash
+rm mosquitto/config/mosquitto.passwd
 ```
 
 ### 4. Start the stack
@@ -54,7 +85,7 @@ Open Grafana at http://localhost:3000 (or your Mac's LAN IP).
 
 Subscribe to `home/network/status` (or whatever you set `MQTT_TOPIC` to) on your Mac's LAN IP, port `1883`.
 
-- **iOS**: MQTT Alert (App Store) or RadioShuttle MQTT Push Client
+- **iOS**: MQTTAnalyzer
 - **Android**: MQTT Alert for IoT (Play Store)
 
 Payload is `"down"` when internet probes fail, `"up"` on recovery.
