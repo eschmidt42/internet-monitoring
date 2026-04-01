@@ -51,7 +51,9 @@ def alert():
         logger.warning("Rejected request: body is not valid JSON")
         return jsonify({"error": "request body must be valid JSON"}), 400
     if not isinstance(data, dict):
-        logger.warning("Rejected request: expected a JSON object, got %s", type(data).__name__)
+        logger.warning(
+            "Rejected request: expected a JSON object, got %s", type(data).__name__
+        )
         return jsonify({"error": "request body must be a JSON object"}), 400
     if "alerts" not in data:
         logger.warning("Rejected request: missing 'alerts' key")
@@ -66,12 +68,9 @@ def alert():
     # are informational and should not trigger an outage notification.
     def _is_outage(alert):
         labels = alert.get("labels", {})
-        return (
-            alert.get("status") == "firing"
-            and (
-                labels.get("alertname") == "InternetDown"
-                or labels.get("severity") == "critical"
-            )
+        return alert.get("status") == "firing" and (
+            labels.get("alertname") == "InternetDown"
+            or labels.get("severity") == "critical"
         )
 
     payload = "down" if any(_is_outage(a) for a in alerts) else "up"

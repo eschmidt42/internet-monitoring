@@ -47,7 +47,7 @@ exit
 cp .env.example .env
 ```
 
-Edit .env — set GRAFANA_ADMIN_PASSWORD, MQTT_USER, MQTT_PASSWORD. 
+Edit .env — set GRAFANA_ADMIN_PASSWORD, MQTT_USER, MQTT_PASSWORD.
 
 Create the Mosquitto password file (must match MQTT_USER / MQTT_PASSWORD in .env)
 
