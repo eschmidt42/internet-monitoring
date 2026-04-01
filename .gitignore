@@ -1,0 +1,6 @@
+# Mosquitto credentials — generate with:
+#   mosquitto_passwd -c mosquitto/config/mosquitto.passwd <username>
+mosquitto/config/mosquitto.passwd
+
+# Environment overrides
+.env

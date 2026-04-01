@@ -1,0 +1,110 @@
+---
+# To upgrade: update the image tags below, test with `docker compose pull && docker compose up -d`,
+# and verify dashboards / alert rules still behave correctly.
+services:
+
+  prometheus:
+    image: prom/prometheus:v3.10.0
+    container_name: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - monitoring
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: blackbox
+    restart: unless-stopped
+    cap_add:
+      - NET_RAW
+    volumes:
+      - ./blackbox/config:/etc/blackbox_exporter
+    command:
+      - '--config.file=/etc/blackbox_exporter/blackbox.yml'
+    ports:
+      - "127.0.0.1:9115:9115"
+    networks:
+      - monitoring
+
+  alertmanager:
+    image: prom/alertmanager:v0.31.1
+    container_name: alertmanager
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - "127.0.0.1:9093:9093"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:12.4.2
+    container_name: grafana
+    restart: unless-stopped
+    # Set GRAFANA_ADMIN_USER and GRAFANA_ADMIN_PASSWORD in .env
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?set in .env}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - monitoring
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: mosquitto
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    ports:
+      - "1883:1883"
+    networks:
+      - monitoring
+
+  mqtt-bridge:
+    build: ./mqtt-bridge
+    container_name: mqtt-bridge
+    restart: unless-stopped
+    environment:
+      - MQTT_HOST=mosquitto
+      - MQTT_PORT=1883
+      - MQTT_TOPIC=${MQTT_TOPIC:-home/network/status}
+      - MQTT_USER=${MQTT_USER}
+      - MQTT_PASSWORD=${MQTT_PASSWORD}
+    ports:
+      - "127.0.0.1:5000:5000"
+    depends_on:
+      - mosquitto
+    networks:
+      - monitoring
+
+volumes:
+  prometheus_data:
+  alertmanager_data:
+  grafana_data:
+  mosquitto_data:
+  mosquitto_log:
+
+networks:
+  monitoring:
+    driver: bridge
