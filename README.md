@@ -99,6 +99,18 @@ Subscribe to `home/network/status` (or whatever you set `MQTT_TOPIC` to) on your
 
 Payload is `"down"` when internet probes fail, `"up"` on recovery.
 
+### 6. Monitoring
+
+You can access the grafana `Internet Monitoring` dashboard across your WiFi LAN under `http://hostip:3000`. To determine `hostip` run for example
+
+```bash
+sh get-lan-ip.sh
+```
+
+Browsing to the URL will require you to pass Grafana credentials set in `.env`.
+
+Then within Grafana enter into the search bar "Internet" and it should pop up.
+
 ## Alert timing
 
 - Probes run every **15 seconds**
