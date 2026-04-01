@@ -1,6 +1,6 @@
 # Internet Monitoring Stack
 
-Self-contained Podman/Docker Compose stack that monitors internet availability and alerts via MQTT push to mobile devices.
+Self-contained Podman/Docker Compose stack that monitors internet availability and alerts via MQTT push to mobile devices. Based on [internet-pi](https://github.com/geerlingguy/internet-pi/).
 
 ## Services
 
@@ -12,6 +12,15 @@ Self-contained Podman/Docker Compose stack that monitors internet availability a
 | Alertmanager | `9093` (localhost) | Alert routing → webhook |
 | Mosquitto | `1883` (LAN) | MQTT broker |
 | mqtt-bridge | `5000` (localhost) | Alertmanager webhook → MQTT |
+
+## Alerting Flow
+
+```
+Blackbox Exporter → Prometheus (evaluates alert.rules every 15s)
+  → Alertmanager (fires after 2 min) → webhook → mqtt-bridge
+    → Mosquitto (topic: home/network/status, payload: "down"/"up")
+      → Mobile apps on LAN Wi-Fi
+```
 
 ## Quick Start
 
@@ -85,8 +94,8 @@ Open Grafana at http://localhost:3000 (or your Mac's LAN IP).
 
 Subscribe to `home/network/status` (or whatever you set `MQTT_TOPIC` to) on your Mac's LAN IP, port `1883`.
 
-- **iOS**: MQTTAnalyzer
-- **Android**: MQTT Alert for IoT (Play Store)
+- **iOS**: [MQTTAnalyzer](https://github.com/philipparndt/mqtt-analyzer) (Apple App Store, tested)
+- **Android**: MQTT Alert for IoT (Play Store, untested)
 
 Payload is `"down"` when internet probes fail, `"up"` on recovery.
 
