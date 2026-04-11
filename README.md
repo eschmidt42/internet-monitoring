@@ -27,7 +27,7 @@ Blackbox Exporter → Prometheus (evaluates alert.rules every 15s)
 ### 1. Prerequisites
 
 - [Podman Desktop](https://podman-desktop.io/) (macOS) — provides `podman machine` + Docker socket
-- `podman compose` or `docker-compose` CLI
+- `docker-compose` CLI
 
 ### 2. ICMP / Ping support (Podman rootless, one-time)
 
@@ -85,7 +85,7 @@ rm mosquitto/config/mosquitto.passwd
 ### 4. Start the stack
 
 ```bash
-podman compose up -d
+docker-compose up -d
 ```
 
 Open Grafana at http://localhost:3000 (or your Mac's LAN IP).

@@ -1,4 +1,5 @@
----
+name: internet-monitoring
+
 # To upgrade: update the image tags below, test with `docker compose pull && docker compose up -d`,
 # and verify dashboards / alert rules still behave correctly.
 services:
