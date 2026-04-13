@@ -9,7 +9,7 @@ def pytest_configure(config):
 
 
 @pytest.fixture(autouse=True)
-def mqtt_defaults(monkeypatch):
+def mqtt_defaults(monkeypatch: pytest.MonkeyPatch):
     """Reset module-level MQTT config to known defaults for every test."""
     monkeypatch.setattr("mqtt_bridge.service.MQTT_HOST", "test-broker")
     monkeypatch.setattr("mqtt_bridge.service.MQTT_PORT", 1883)

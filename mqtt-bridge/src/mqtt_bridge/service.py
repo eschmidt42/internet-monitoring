@@ -10,39 +10,15 @@ Payload published:
 """
 
 import logging
-import os
 
-import paho.mqtt.publish as publish
 from flask import Flask, jsonify, request
+
+from mqtt_bridge.env import *
+from mqtt_bridge.helper import publish
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-MQTT_HOST = os.environ["MQTT_HOST"]
-MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
-MQTT_TOPIC = os.environ.get("MQTT_TOPIC", "home/network/status")
-MQTT_USER = os.environ.get("MQTT_USER")
-MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD")
-
-
-def _mqtt_auth():
-    if MQTT_USER and MQTT_PASSWORD:
-        return {"username": MQTT_USER, "password": MQTT_PASSWORD}
-    return None
-
-
-def _publish(payload: str):
-    auth = _mqtt_auth()
-    publish.single(
-        topic=MQTT_TOPIC,
-        payload=payload,
-        hostname=MQTT_HOST,
-        port=MQTT_PORT,
-        auth=auth,
-        retain=True,
-    )
-    logger.info("Published '%s' to %s", payload, MQTT_TOPIC)
 
 
 @app.route("/alert", methods=["POST"])
@@ -77,7 +53,14 @@ def alert():
     payload = "down" if any(_is_outage(a) for a in alerts) else "up"
 
     try:
-        _publish(payload)
+        publish(
+            payload,
+            user=MQTT_USER,
+            password=MQTT_PASSWORD,
+            topic=MQTT_TOPIC,
+            host=MQTT_HOST,
+            port=MQTT_PORT,
+        )
     except Exception as exc:
         logger.error("MQTT publish failed: %s", exc)
         return jsonify({"error": str(exc)}), 502

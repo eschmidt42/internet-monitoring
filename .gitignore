@@ -10,3 +10,6 @@ mosquitto/config/mosquitto.passwd
 .venv
 __pycache__
 .pytest_cache
+
+# IDE
+.vscode
