@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
-from mqtt_bridge.helper import mqtt_auth, publish
+from mqtt_bridge.helper import is_outage, mqtt_auth, publish
 
 # ---------------------------------------------------------------------------
 # mqtt_auth
@@ -86,3 +86,35 @@ class TestPublish:
 
         _, kwargs = mock_single.call_args
         assert kwargs["retain"] is True
+
+
+# ---------------------------------------------------------------------------
+# is_outage
+# ---------------------------------------------------------------------------
+
+
+class TestIsOutage:
+    def test_internet_down_firing_is_outage(self) -> None:
+        alert = {"status": "firing", "labels": {"alertname": "InternetDown"}}
+        assert is_outage(alert) is True
+
+    def test_critical_severity_firing_is_outage(self) -> None:
+        alert = {"status": "firing", "labels": {"severity": "critical"}}
+        assert is_outage(alert) is True
+
+    def test_internet_down_resolved_is_not_outage(self) -> None:
+        alert = {"status": "resolved", "labels": {"alertname": "InternetDown"}}
+        assert is_outage(alert) is False
+
+    def test_warning_severity_firing_is_not_outage(self) -> None:
+        alert = {
+            "status": "firing",
+            "labels": {"alertname": "HighLatency", "severity": "warning"},
+        }
+        assert is_outage(alert) is False
+
+    def test_firing_with_no_labels_is_not_outage(self) -> None:
+        assert is_outage({"status": "firing"}) is False
+
+    def test_empty_alert_is_not_outage(self) -> None:
+        assert is_outage({}) is False

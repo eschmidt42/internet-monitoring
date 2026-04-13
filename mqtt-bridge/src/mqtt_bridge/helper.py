@@ -1,5 +1,6 @@
 import logging
-from typing import TypedDict
+from collections.abc import Mapping
+from typing import TypedDict, cast
 
 import paho.mqtt.publish as paho_publish
 
@@ -36,3 +37,20 @@ def publish(
         retain=True,
     )
     logger.info("Published '%s' to %s", payload, topic)
+
+
+# Only treat connectivity-loss alerts as "down"; warnings (e.g. HighLatency)
+# are informational and should not trigger an outage notification.
+def is_outage(alert: Mapping[str, object]) -> bool:
+
+    labels = alert.get("labels", {})
+
+    if not isinstance(labels, dict):
+        return False
+
+    labels_map = cast(Mapping[str, object], labels)
+
+    return alert.get("status") == "firing" and (
+        labels_map.get("alertname") == "InternetDown"
+        or labels_map.get("severity") == "critical"
+    )
