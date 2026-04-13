@@ -9,3 +9,9 @@ dependencies = [
     "paho-mqtt==2.1.0",
     "gunicorn==23.0.0"
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.10",
+    "ty>=0.0.29",
+]
