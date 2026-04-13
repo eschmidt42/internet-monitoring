@@ -1,4 +1,4 @@
-"""Unit tests for mqtt_bridge.bridge."""
+"""Unit tests for mqtt_bridge.service."""
 
 from unittest.mock import patch
 
@@ -50,7 +50,7 @@ class TestAlertPayload:
     """Tests for the 'up'/'down' payload logic."""
 
     def _post(self, client, alerts):
-        with patch("mqtt_bridge.bridge.publish.single"):
+        with patch("mqtt_bridge.service.publish.single"):
             return client.post("/alert", json={"alerts": alerts})
 
     def test_empty_alerts_publishes_up(self, client):
@@ -95,7 +95,7 @@ class TestAlertPayload:
     def test_mqtt_failure_returns_502(self, client):
         alerts = [{"status": "firing", "labels": {"alertname": "InternetDown"}}]
         with patch(
-            "mqtt_bridge.bridge.publish.single",
+            "mqtt_bridge.service.publish.single",
             side_effect=Exception("connection refused"),
         ):
             resp = client.post("/alert", json={"alerts": alerts})
@@ -111,7 +111,7 @@ class TestAlertPayload:
 class TestMqttPublish:
     def test_publishes_with_correct_arguments(self, client):
         alerts = [{"status": "firing", "labels": {"alertname": "InternetDown"}}]
-        with patch("mqtt_bridge.bridge.publish.single") as mock_pub:
+        with patch("mqtt_bridge.service.publish.single") as mock_pub:
             client.post("/alert", json={"alerts": alerts})
 
         mock_pub.assert_called_once_with(
@@ -124,22 +124,22 @@ class TestMqttPublish:
         )
 
     def test_publishes_with_auth_when_credentials_set(self, client, monkeypatch):
-        monkeypatch.setattr("mqtt_bridge.bridge.MQTT_USER", "alice")
-        monkeypatch.setattr("mqtt_bridge.bridge.MQTT_PASSWORD", "secret")
+        monkeypatch.setattr("mqtt_bridge.service.MQTT_USER", "alice")
+        monkeypatch.setattr("mqtt_bridge.service.MQTT_PASSWORD", "secret")
 
         alerts = [{"status": "firing", "labels": {"alertname": "InternetDown"}}]
-        with patch("mqtt_bridge.bridge.publish.single") as mock_pub:
+        with patch("mqtt_bridge.service.publish.single") as mock_pub:
             client.post("/alert", json={"alerts": alerts})
 
         _, kwargs = mock_pub.call_args
         assert kwargs["auth"] == {"username": "alice", "password": "secret"}
 
     def test_no_auth_when_only_user_set(self, client, monkeypatch):
-        monkeypatch.setattr("mqtt_bridge.bridge.MQTT_USER", "alice")
+        monkeypatch.setattr("mqtt_bridge.service.MQTT_USER", "alice")
         # MQTT_PASSWORD remains None (set by autouse fixture)
 
         alerts = [{"status": "firing", "labels": {"alertname": "InternetDown"}}]
-        with patch("mqtt_bridge.bridge.publish.single") as mock_pub:
+        with patch("mqtt_bridge.service.publish.single") as mock_pub:
             client.post("/alert", json={"alerts": alerts})
 
         _, kwargs = mock_pub.call_args
