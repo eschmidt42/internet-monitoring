@@ -5,5 +5,5 @@
 To build the mqtt image in particular run
 
 ```bash
-podman compose build mqtt-bridg
+podman compose build mqtt-bridge
 ```
