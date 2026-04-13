@@ -3,7 +3,11 @@ FROM astral/uv:python3.12-bookworm-slim@sha256:f41363eb4bf05a63a61c8a7bc50ab1c54
 
 WORKDIR /app
 
-COPY pyproject.toml .python-version uv.lock ./
+COPY pyproject.toml .python-version uv.lock README.md ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
+
+COPY src/ src/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
@@ -15,7 +19,7 @@ RUN adduser --disabled-password --gecos "" appuser
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
-COPY bridge.py .
+COPY src/ .
 
 RUN chown -R appuser:appuser /app
 USER appuser
@@ -24,4 +28,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "30", "bridge:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "30", "mqtt_bridge.bridge:app"]
