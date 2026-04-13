@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-yaml
       - id: check-json
@@ -10,14 +10,6 @@ repos:
       - id: check-added-large-files
       - id: detect-private-key
       - id: check-added-large-files
-        args: ['--maxkb=1500']
-
-  # Python linting + formatting (mqtt-bridge/bridge.py)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.2
-    hooks:
-      - id: ruff
-      - id: ruff-format
 
   # Shell script linting (get-lan-ip.sh)
   - repo: https://github.com/shellcheck-py/shellcheck-py

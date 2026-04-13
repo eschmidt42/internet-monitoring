@@ -9,74 +9,55 @@ Payload published:
   "up"      — when all alerts have resolved
 """
 
-import os
 import logging
-from flask import Flask, request, jsonify
-import paho.mqtt.publish as publish
+
+from flask import Flask, jsonify, request
+
+from mqtt_bridge.env import *
+from mqtt_bridge.helper import is_outage, publish
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MQTT_HOST = os.environ["MQTT_HOST"]
-MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
-MQTT_TOPIC = os.environ.get("MQTT_TOPIC", "home/network/status")
-MQTT_USER = os.environ.get("MQTT_USER")
-MQTT_PASSWORD = os.environ.get("MQTT_PASSWORD")
-
-
-def _mqtt_auth():
-    if MQTT_USER and MQTT_PASSWORD:
-        return {"username": MQTT_USER, "password": MQTT_PASSWORD}
-    return None
-
-
-def _publish(payload: str):
-    auth = _mqtt_auth()
-    publish.single(
-        topic=MQTT_TOPIC,
-        payload=payload,
-        hostname=MQTT_HOST,
-        port=MQTT_PORT,
-        auth=auth,
-        retain=True,
-    )
-    logger.info("Published '%s' to %s", payload, MQTT_TOPIC)
-
 
 @app.route("/alert", methods=["POST"])
 def alert():
+
     data = request.get_json(force=True, silent=True)
+
     if data is None:
         logger.warning("Rejected request: body is not valid JSON")
         return jsonify({"error": "request body must be valid JSON"}), 400
+
     if not isinstance(data, dict):
         logger.warning(
             "Rejected request: expected a JSON object, got %s", type(data).__name__
         )
         return jsonify({"error": "request body must be a JSON object"}), 400
+
     if "alerts" not in data:
         logger.warning("Rejected request: missing 'alerts' key")
         return jsonify({"error": "missing required key: alerts"}), 400
+
     if not isinstance(data["alerts"], list):
         logger.warning("Rejected request: 'alerts' must be a list")
         return jsonify({"error": "'alerts' must be a list"}), 400
 
     alerts = data["alerts"]
 
-    # Only treat connectivity-loss alerts as "down"; warnings (e.g. HighLatency)
-    # are informational and should not trigger an outage notification.
-    def _is_outage(alert):
-        labels = alert.get("labels", {})
-        return alert.get("status") == "firing" and (
-            labels.get("alertname") == "InternetDown"
-            or labels.get("severity") == "critical"
-        )
-
-    payload = "down" if any(_is_outage(a) for a in alerts) else "up"
+    payload = "down" if any(is_outage(a) for a in alerts) else "up"
 
     try:
-        _publish(payload)
+        publish(
+            payload,
+            user=MQTT_USER,
+            password=MQTT_PASSWORD,
+            topic=MQTT_TOPIC,
+            host=MQTT_HOST,
+            port=MQTT_PORT,
+        )
+
     except Exception as exc:
         logger.error("MQTT publish failed: %s", exc)
         return jsonify({"error": str(exc)}), 502

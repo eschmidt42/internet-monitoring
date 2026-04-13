@@ -4,3 +4,13 @@ mosquitto/config/mosquitto.passwd
 
 # Environment overrides
 .env
+
+# Python
+.ruff_cache
+.venv
+__pycache__
+.pytest_cache
+.coverage
+
+# IDE
+.vscode
