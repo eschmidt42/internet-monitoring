@@ -12,6 +12,9 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "pytest-xdist>=3.8.0",
     "ruff>=0.15.10",
     "ty>=0.0.29",
 ]
@@ -19,3 +22,6 @@ dev = [
 [build-system]
 requires = ["uv_build>=0.6.6,<0.12"]
 build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

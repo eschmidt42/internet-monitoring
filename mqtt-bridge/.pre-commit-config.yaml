@@ -32,10 +32,10 @@ repos:
     pass_filenames: false
     language: system
     types_or: [python, pyi]
-  # - id: test
-  #   name: test
-  #   entry: uv run pytest -n auto tests
-  #   pass_filenames: false
-  #   require_serial: true
-  #   language: system
-  #   types_or: [python, pyi]
+  - id: test
+    name: test
+    entry: uv run pytest -n auto tests
+    pass_filenames: false
+    require_serial: true
+    language: system
+    types_or: [python, pyi]
