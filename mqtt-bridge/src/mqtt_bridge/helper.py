@@ -54,7 +54,7 @@ def publish(
         hostname=host,
         port=port,
         auth=auth,  # ty: ignore
-        retain=True,
+        retain=False,
     )
     logger.info("Published '%s' to %s", payload, topic)
 

@@ -124,7 +124,7 @@ class TestMqttPublish:
             hostname="test-broker",
             port=1883,
             auth=None,
-            retain=True,
+            retain=False,
         )
 
     def test_publishes_with_auth_when_credentials_set(

@@ -63,7 +63,7 @@ class TestPublish:
             hostname="broker",
             port=1883,
             auth=None,
-            retain=True,
+            retain=False,
         )
 
     def test_passes_auth_when_credentials_provided(self) -> None:
@@ -85,7 +85,7 @@ class TestPublish:
             self._publish(mock_single)
 
         _, kwargs = mock_single.call_args
-        assert kwargs["retain"] is True
+        assert kwargs["retain"] is False
 
 
 # ---------------------------------------------------------------------------
