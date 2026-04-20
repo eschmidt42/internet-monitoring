@@ -1,6 +1,6 @@
 ---
 global:
-  resolve_timeout: 5m
+  resolve_timeout: 2m
 
 # Silence alerts between 22:00 and 07:00 Europe/Berlin local time
 time_intervals:
