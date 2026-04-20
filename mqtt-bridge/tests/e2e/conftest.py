@@ -16,6 +16,7 @@ def mqtt_defaults(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("mqtt_bridge.service.MQTT_TOPIC", "home/network/status")
     monkeypatch.setattr("mqtt_bridge.service.MQTT_USER", None)
     monkeypatch.setattr("mqtt_bridge.service.MQTT_PASSWORD", None)
+    monkeypatch.setattr("mqtt_bridge.service._last_state", None)
 
 
 @pytest.fixture()

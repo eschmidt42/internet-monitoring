@@ -152,3 +152,48 @@ class TestMqttPublish:
 
         _, kwargs = mock_pub.call_args
         assert kwargs["auth"] is None
+
+
+# ---------------------------------------------------------------------------
+# /alert – heartbeat state tracking
+# ---------------------------------------------------------------------------
+
+
+class TestStateTracking:
+    """_last_state must reflect the most recently published payload."""
+
+    def _post(self, client: FlaskClient, alerts: list[dict]) -> TestResponse:
+        with patch("mqtt_bridge.helper.paho_publish.single"):
+            return client.post("/alert", json={"alerts": alerts})
+
+    def test_last_state_none_before_first_alert(self) -> None:
+        import mqtt_bridge.service as svc
+
+        assert svc._last_state is None
+
+    def test_last_state_set_to_down_on_outage(self, client: FlaskClient) -> None:
+        import mqtt_bridge.service as svc
+
+        self._post(
+            client, [{"status": "firing", "labels": {"alertname": "InternetDown"}}]
+        )
+        assert svc._last_state == "down"
+
+    def test_last_state_set_to_up_on_resolve(self, client: FlaskClient) -> None:
+        import mqtt_bridge.service as svc
+
+        self._post(
+            client, [{"status": "firing", "labels": {"alertname": "InternetDown"}}]
+        )
+        self._post(
+            client, [{"status": "resolved", "labels": {"alertname": "InternetDown"}}]
+        )
+        assert svc._last_state == "up"
+
+    def test_last_state_not_updated_on_validation_error(
+        self, client: FlaskClient
+    ) -> None:
+        import mqtt_bridge.service as svc
+
+        client.post("/alert", json={})  # missing 'alerts' key → 400
+        assert svc._last_state is None

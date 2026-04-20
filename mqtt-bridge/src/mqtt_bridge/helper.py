@@ -37,7 +37,7 @@ def publish(
     host: str,
     port: int,
 ) -> None:
-    """Publish a retained MQTT message, with optional authentication.
+    """Publish an MQTT message, with optional authentication.
 
     Args:
         payload (str): The message payload to publish.
