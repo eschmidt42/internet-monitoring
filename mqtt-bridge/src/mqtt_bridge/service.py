@@ -10,6 +10,7 @@ Payload published:
 """
 
 import logging
+import threading
 
 from flask import Flask, jsonify, request
 
@@ -20,9 +21,37 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Last state published by the /alert handler. None until the first alert fires.
+_last_state: str | None = None
+
+
+def _run_heartbeat() -> None:
+    """Re-publish the last known state periodically so reconnecting clients recover."""
+    import time
+
+    while True:
+        time.sleep(HEARTBEAT_INTERVAL)
+        if _last_state is not None:
+            try:
+                publish(
+                    _last_state,
+                    user=MQTT_USER,
+                    password=MQTT_PASSWORD,
+                    topic=MQTT_TOPIC,
+                    host=MQTT_HOST,
+                    port=MQTT_PORT,
+                )
+                logger.info("Heartbeat published '%s'", _last_state)
+            except Exception as exc:
+                logger.error("Heartbeat publish failed: %s", exc)
+
+
+threading.Thread(target=_run_heartbeat, daemon=True, name="mqtt-heartbeat").start()
+
 
 @app.route("/alert", methods=["POST"])
 def alert():
+    global _last_state
 
     data = request.get_json(force=True, silent=True)
 
@@ -47,6 +76,7 @@ def alert():
     alerts = data["alerts"]
 
     payload = "down" if any(is_outage(a) for a in alerts) else "up"
+    _last_state = payload
 
     try:
         publish(

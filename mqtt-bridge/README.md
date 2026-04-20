@@ -2,7 +2,9 @@
 
 Alertmanager webhook → MQTT bridge. Receives `POST /alert` from Alertmanager
 and publishes `"down"` or `"up"` to a configured MQTT topic so mobile apps
-subscribed on the LAN are notified of internet outages.
+subscribed on the LAN are notified of internet outages. Messages are not
+retained; instead a background heartbeat re-publishes the last known state
+every `HEARTBEAT_INTERVAL` seconds so reconnecting clients recover.
 
 ## Structure
 
@@ -29,6 +31,7 @@ mqtt-bridge/
 | `MQTT_TOPIC` | `home/network/status` | Topic to publish status messages to |
 | `MQTT_USER` | *(none)* | MQTT username (optional) |
 | `MQTT_PASSWORD` | *(none)* | MQTT password (optional) |
+| `HEARTBEAT_INTERVAL` | `300` | Seconds between heartbeat re-publishes of the last known state |
 
 ## Develop
 

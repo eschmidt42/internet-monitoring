@@ -92,6 +92,7 @@ services:
       - MQTT_TOPIC=${MQTT_TOPIC:-home/network/status}
       - MQTT_USER=${MQTT_USER}
       - MQTT_PASSWORD=${MQTT_PASSWORD}
+      - HEARTBEAT_INTERVAL=${HEARTBEAT_INTERVAL:-300}
     ports:
       - "127.0.0.1:5000:5000"
     depends_on:
